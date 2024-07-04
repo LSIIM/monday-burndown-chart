@@ -4,6 +4,9 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+plotly = "*"
+kaleido = "==0.1.0post1"
+pandas = "*"
 
 [dev-packages]
 
