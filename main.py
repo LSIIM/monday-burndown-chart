@@ -36,70 +36,6 @@ print(len(itens))
 print()
 
 # desenhar o grafico com plotly (x: data, y1: dificuldade dado pelo "Prazo", y2: dificuldade dado pelo "Done Date")
-# exemplo de item
-# "items": [
-#     {
-#         "name": "MAYBE Verificar com o ASSETS os arquivos geojson para verificar se mostra ou não os botões de Layer de Detecção WebODM",
-#         "column_values": [
-#             {
-#                 "value": null,
-#                 "text": "",
-#                 "type": "text",
-#                 "column": {
-#                     "title": "Responsável"
-#                 }
-#             },
-#             {
-#                 "value": "{\"date\":\"2024-07-18\",\"changed_at\":\"2024-07-04T20:20:23.776Z\"}",
-#                 "text": "2024-07-18",
-#                 "type": "date",
-#                 "column": {
-#                     "title": "Prazo"
-#                 }
-#             },
-#             {
-#                 "value": "{\"index\":0,\"post_id\":null}",
-#                 "text": "Em andamento",
-#                 "type": "status",
-#                 "column": {
-#                     "title": "Status"
-#                 }
-#             },
-#             {
-#                 "value": "\"2\"",
-#                 "text": "2",
-#                 "type": "numbers",
-#                 "column": {
-#                     "title": "Dificuldade (Horas)"
-#                 }
-#             },
-#             {
-#                 "value": "\"Thigz Zero, Fábio\"",
-#                 "text": "Thigz Zero, Fábio",
-#                 "type": "text",
-#                 "column": {
-#                     "title": "Resp_temp"
-#                 }
-#             },
-#             {
-#                 "value": null,
-#                 "text": "",
-#                 "type": "date",
-#                 "column": {
-#                     "title": "Done date"
-#                 }
-#             },
-#             {
-#                 "value": "{\"tag_ids\":[23361983]}",
-#                 "text": "Plataforma-AgroSmart",
-#                 "type": "tags",
-#                 "column": {
-#                     "title": "Área"
-#                 }
-#             }
-#         ]
-#     },
-# ]
 
 # data, dificuldade
 prazo_dificuldade = []
@@ -109,7 +45,7 @@ for item in itens:
     prazo = ""
     dificuldade = 0
     done_date = ""
-    if item["column_values"][1]["value"] is not None and (item["column_values"][3]["text"] != ''):
+    if item["column_values"][1]["value"] != '' and not (item["column_values"][3]["text"] == '' or item["column_values"][3]["text"] == None or item["column_values"][3]["text"] == 'null' or item["column_values"][3]["text"] == '0') and item['column_values'][2]["text"] == "Feito":
         prazo = item["column_values"][1]["text"]
         dificuldade = float(item["column_values"][3]["text"])
         if item["column_values"][5]["value"] is not None:
@@ -132,8 +68,7 @@ for i in done_date_dificuldade:
         done_date_dificuldade_agregado.append((i[0], sum([j[1] for j in done_date_dificuldade if j[0] == i[0]])))
 
 
-print(prazo_dificuldade_agregado)
-print(done_date_dificuldade_agregado)
+
 
 # grafico
 import plotly.express as px
@@ -141,8 +76,41 @@ import plotly.express as px
 prazo_dificuldade_agregado = sorted(prazo_dificuldade_agregado, key=lambda x: x[0])
 done_date_dificuldade_agregado = sorted(done_date_dificuldade_agregado, key=lambda x: x[0])
 
-# linha de prazo
-fig = px.line(x=[i[0] for i in prazo_dificuldade_agregado], y=[i[1] for i in prazo_dificuldade_agregado], title='Dificuldade por prazo', labels={'x':'Data', 'y':'Dificuldade'})
-fig.add_scatter(x=[i[0] for i in done_date_dificuldade_agregado], y=[i[1] for i in done_date_dificuldade_agregado], mode='lines', name='Done date')
+print(prazo_dificuldade_agregado)
+print(done_date_dificuldade_agregado)
 
-fig.show()
+# grafico cumuliativo
+
+prazo_dificuldade_agregado_cum = []
+done_date_dificuldade_agregado_cum = []
+
+for i in range(len(prazo_dificuldade_agregado)):
+    prazo_dificuldade_agregado_cum.append((prazo_dificuldade_agregado[i][0], sum([j[1] for j in prazo_dificuldade_agregado[:i]])))
+
+for i in range(len(done_date_dificuldade_agregado)):
+    done_date_dificuldade_agregado_cum.append((done_date_dificuldade_agregado[i][0], sum([j[1] for j in done_date_dificuldade_agregado[:i]])))
+
+prazo_dificuldade_agregado_cum = sorted(prazo_dificuldade_agregado_cum, key=lambda x: x[0])
+done_date_dificuldade_agregado_cum = sorted(done_date_dificuldade_agregado_cum, key=lambda x: x[0])
+
+fig = px.line(title="Burndown Chart AgroSmart",
+              labels={"x":"Data", "y":"Dificuldade (Horas)"}, template="plotly_dark")
+
+fig.add_scatter(x=[i[0] for i in prazo_dificuldade_agregado_cum], y=[i[1] for i in prazo_dificuldade_agregado_cum], mode='lines', name="Dificuldade Prevista (Acumulada)")
+
+fig.add_scatter(x=[i[0] for i in done_date_dificuldade_agregado_cum], y=[i[1] for i in done_date_dificuldade_agregado_cum], mode='lines', name="Dificuldade Realizada (Acumulada)")
+
+
+# salva como png em /burndown/burndown_TODAY_DATE.png
+
+import os
+import datetime
+
+today = datetime.datetime.now().strftime("%Y-%m-%d")
+if not os.path.exists("burndown"):
+    os.makedirs("burndown")
+# imagem em png com resolução de height=1000 e width=2000
+fig.write_image("burndown/burndown_"+today+".png", height=1000, width=2000)
+print("burndown/burndown_"+today+".png")
+
+
