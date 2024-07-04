@@ -1,47 +1,19 @@
-import requests
+import http.client
+import json
+from definitions import TOKEN
 
-# Defina o URL da API GraphQL
-url = 'https://your-graphql-api-endpoint.com/graphql'
+conn = http.client.HTTPSConnection("api.monday.com")
 
-# Defina o token de autorização
-token = 'seu_token_aqui'
+payload = "{\"query\":\"{\\n  boards(limit: 1, ids: [6968247635]) {\\n    name\\n    id\\n    items_page {\\n      items {\\n        name\\n        column_values {\\n          value\\n          text\\n          type\\n          column {\\n            title\\n          }\\n        }\\n      }\\n    }\\n  }\\n}\"}"
 
-# Defina o payload do corpo da requisição
-query = """
-{
-  boards(limit: 1, ids: [6968247635]) {
-    name
-    id
-    items_page {
-      items {
-        name
-        column_values {
-          value
-          text
-          type
-          column {
-            title
-          }
-        }
-      }
-    }
-  }
-}
-"""
-
-# Configurar os headers
 headers = {
-    'Content-Type': 'application/json',
-    'Authorization': f'Bearer {token}'
-}
+    'Content-Type': "application/json",
+    'Authorization': TOKEN
+    }
 
-# Fazer a requisição POST
-response = requests.post(url, json={'query': query}, headers=headers)
+conn.request("POST", "/v2", payload, headers)
 
-# Verificar a resposta
-if response.status_code == 200:
-    print('Requisição bem-sucedida!')
-    print('Resposta:', response.json())
-else:
-    print(f'Falha na requisição. Status code: {response.status_code}')
-    print('Detalhes:', response.text)
+res = conn.getresponse()
+data = res.read()
+
+print(json.loads(data.decode("utf-8")))
