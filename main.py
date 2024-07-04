@@ -45,7 +45,7 @@ for item in itens:
     prazo = ""
     dificuldade = 0
     done_date = ""
-    if item["column_values"][1]["value"] != '' and not (item["column_values"][3]["text"] == '' or item["column_values"][3]["text"] == None or item["column_values"][3]["text"] == 'null' or item["column_values"][3]["text"] == '0') and item['column_values'][2]["text"] == "Feito":
+    if item["column_values"][1]["value"] != '' and not (item["column_values"][3]["text"] == '' or item["column_values"][3]["text"] == None or item["column_values"][3]["text"] == 'null' or item["column_values"][3]["text"] == '0'):
         prazo = item["column_values"][1]["text"]
         dificuldade = float(item["column_values"][3]["text"])
         if item["column_values"][5]["value"] is not None:
